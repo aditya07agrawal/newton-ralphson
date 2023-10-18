@@ -4,9 +4,10 @@ Defines classes:
 - Line
 - Grid
 """
-# pylint: disable=C0103
+# pylint: disable=C0103, C0116
 
 from __future__ import annotations
+import sys
 
 from typing import List
 
@@ -75,9 +76,14 @@ class Line(CountMixin):
 
 
 class Grid:
+    """Class to store information on Grid"""
+
     def __init__(self, nodes: List[Node], lines: List[Line]):
         self.nodes = sorted(nodes, key=lambda node: node.index)
         self.lines = lines
+
+        self.nl = len(self.lines)
+        self.nb = len(self.nodes)
 
         self.V = np.array([node.v for node in self.nodes])
         self.angle = np.array([node.theta for node in self.nodes])
@@ -85,8 +91,6 @@ class Grid:
         self.Y = np.zeros((self.nb, self.nb), dtype=complex)
         self.G = np.zeros((self.nb, self.nb))
         self.B = np.zeros((self.nb, self.nb))
-
-        self.nl = len(self.lines)
 
         self.create_matrix()
 
@@ -98,23 +102,21 @@ class Grid:
         self.Psp = self.Pg - self.Pl
         self.Qsp = self.Qg - self.Ql
 
-    @property
-    def nb(self):
-        fromBus = [line.from_node.index for line in self.lines]
-        toBus = [line.to_node.index for line in self.lines]
-        return max(max(fromBus), max(toBus)) + 1
+        self.iter = 0
+        self.dV = np.zeros(self.nb)
+        self.dangle = np.zeros(self.nb)
 
     def get_node_by_id(self, index: int):
         for node in self.nodes:
             if node.index == index:
                 return node
-        raise ValueError("No node with number %d." % index)
+        raise ValueError(f"No node with number {index}.")
 
     def get_line_by_id(self, index: int):
         for line in self.lines:
             if line.index == index:
                 return line
-        raise ValueError("No line with number %d." % index)
+        raise ValueError(f"No line with number {index}.")
 
     def get_lines_by_node(self, node_id: int):
         return [line for line in self.lines if node_id in line.end_nodes_id]
@@ -130,8 +132,8 @@ class Grid:
     def create_matrix(self):
         # off diagonal elements
         for line in self.lines:
-            fromNode, toNode = line.end_nodes_id
-            self.Y[toNode, fromNode] = self.Y[fromNode, toNode] = -line.y
+            from_node, to_node = line.end_nodes_id
+            self.Y[to_node, from_node] = self.Y[from_node, to_node] = -line.y
 
         # diagonal elements
         diag = range(self.nb)
@@ -259,7 +261,7 @@ class Grid:
                     self.Q_calc,
                     self.P_calc,
                 )
-                exit()
+                sys.exit()
 
             # J X = M -> X = J^-1 M
             X = np.linalg.solve(self.J, self.delta)
@@ -392,7 +394,7 @@ class Grid:
         self.Iijr = np.real(Iij)
         self.Iiji = np.imag(Iij)
 
-        # line powerflows
+        # line power flows
         for m in range(self.nb):
             for n in range(self.nb):
                 if n != m:
@@ -426,8 +428,8 @@ class Grid:
         self.Pg = self.Pi.reshape([-1, 1]) + self.Pl.reshape([-1, 1])
         self.Qg = self.Qi.reshape([-1, 1]) + self.Ql.reshape([-1, 1])
 
-    def printResults(self):
-        print("\033[95mNewton Raphson Results:\033[0m")
+    def print_results(self):
+        print("\033[95mNewton-Raphson Results:\033[0m")
         print()
         print(
             "| Bus |    V     |  Angle   |      Injection      |     Generation      |       Load         |"

@@ -26,7 +26,7 @@ def main1():
 
     grid = Grid(nodes=nodes, lines=lines)
     grid.nr()
-    grid.printResults()
+    grid.print_results()
 
 
 def main():
@@ -46,7 +46,7 @@ def main():
 
     grid = Grid(nodes, lines)
     grid.nr()
-    grid.printResults()
+    grid.print_results()
 
 
 if __name__ == "__main__":

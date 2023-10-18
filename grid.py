@@ -10,31 +10,31 @@ from __future__ import annotations
 
 from typing import List
 
+from attrs import define, field
+
 import numpy as np
 
 from utils import CountMixin
 
 
+@define
 class Node(CountMixin):
-    def __init__(
-        self,
-        kind: int,
-        v: float,
-        theta: float,
-        PGi: float,
-        QGi: float,
-        PLi: float,
-        QLi: float,
-    ):
+    """Class to store information on a Node"""
+
+    kind: int
+    v: float
+    theta: float
+    PGi: float
+    QGi: float
+    PLi: float
+    QLi: float
+
+    vLf: float = field(init=False)
+    thetaLf: float = field(init=False)
+
+    def __attrs_post_init__(self):
         self._set_index()
 
-        self.v = v
-        self.kind = kind
-        self.theta = theta
-        self.PGi = PGi
-        self.QGi = QGi
-        self.PLi = PLi
-        self.QLi = QLi
         self.vLf = self.v
         self.thetaLf = self.theta
 
@@ -49,25 +49,29 @@ class Node(CountMixin):
         return self.vLf * np.exp(self.thetaLf * 1j)
 
 
+@define
 class Line(CountMixin):
-    def __init__(self, fromNode: Node, toNode: Node, r: float, x: float):
-        self._set_index()
+    """Class to store information on Line"""
 
-        self.fromNode = fromNode
-        self.toNode = toNode
-        self.r = r
-        self.x = x
+    from_node: Node
+    to_node: Node
+    r: float
+    x: float
+
+    z: complex = field(init=False)
+    y: complex = field(init=False)
+
+    end_nodes: tuple[Node, Node] = field(init=False)
+    end_nodes_id: tuple[int, int] = field(init=False)
+
+    def __attrs_post_init__(self):
+        self._set_index()
 
         self.z = self.r + self.x * 1j
         self.y = 1 / self.z
 
-    @property
-    def endNodes(self):
-        return self.fromNode, self.toNode
-
-    @property
-    def endNodes_id(self):
-        return self.fromNode.index, self.toNode.index
+        self.end_nodes = self.from_node, self.to_node
+        self.end_nodes_id = self.from_node.index, self.to_node.index
 
 
 class Grid:
@@ -96,8 +100,8 @@ class Grid:
 
     @property
     def nb(self):
-        fromBus = [line.fromNode.index for line in self.lines]
-        toBus = [line.toNode.index for line in self.lines]
+        fromBus = [line.from_node.index for line in self.lines]
+        toBus = [line.to_node.index for line in self.lines]
         return max(max(fromBus), max(toBus)) + 1
 
     def get_node_by_id(self, index: int):
@@ -113,7 +117,7 @@ class Grid:
         raise ValueError("No line with number %d." % index)
 
     def get_lines_by_node(self, node_id: int):
-        return [line for line in self.lines if node_id in line.endNodes_id]
+        return [line for line in self.lines if node_id in line.end_nodes_id]
 
     @property
     def pq_node_ids(self):
@@ -126,7 +130,7 @@ class Grid:
     def create_matrix(self):
         # off diagonal elements
         for line in self.lines:
-            fromNode, toNode = line.endNodes_id
+            fromNode, toNode = line.end_nodes_id
             self.Y[toNode, fromNode] = self.Y[fromNode, toNode] = -line.y
 
         # diagonal elements
@@ -355,7 +359,7 @@ class Grid:
         self.Ia = np.angle(self.I)
 
         for line in self.lines:
-            fromNode, toNode = line.endNodes
+            fromNode, toNode = line.end_nodes
             i, j = fromNode.index, toNode.index
 
             Iij[i, j] = -(fromNode.vm - toNode.vm) * self.Y[i, j]
@@ -365,16 +369,24 @@ class Grid:
             m = node.index  # node index
             lines = self.get_lines_by_node(node.index)
             for line in lines:
-                if line.fromNode.index == m:
-                    p = line.toNode.index  # index to
+                if line.from_node.index == m:
+                    p = line.to_node.index  # index to
                     if m != p:
-                        Iij[m, p] = -(line.fromNode.vm - line.toNode.vm) * self.Y[m, p]
-                        Iij[p, m] = -(line.toNode.vm - line.fromNode.vm) * self.Y[p, m]
+                        Iij[m, p] = (
+                            -(line.from_node.vm - line.to_node.vm) * self.Y[m, p]
+                        )
+                        Iij[p, m] = (
+                            -(line.to_node.vm - line.from_node.vm) * self.Y[p, m]
+                        )
                 else:
-                    p = line.fromNode.index  # index from
+                    p = line.from_node.index  # index from
                     if m != p:
-                        Iij[m, p] = -(line.toNode.vm - line.fromNode.vm) * self.Y[p, m]
-                        Iij[p, m] = -(line.fromNode.vm - line.toNode.vm) * self.Y[m, p]
+                        Iij[m, p] = (
+                            -(line.to_node.vm - line.from_node.vm) * self.Y[p, m]
+                        )
+                        Iij[p, m] = (
+                            -(line.from_node.vm - line.to_node.vm) * self.Y[m, p]
+                        )
 
         self.Iij = Iij
         self.Iijr = np.real(Iij)
@@ -394,8 +406,8 @@ class Grid:
         Lij = np.zeros(self.nl, dtype=complex)
         for line in self.lines:
             m = line.index - 1
-            p = line.fromNode.index
-            q = line.toNode.index
+            p = line.from_node.index
+            q = line.to_node.index
             Lij[m] = Sij[p, q] + Sij[q, p]
 
         self.Lij = Lij
@@ -452,8 +464,8 @@ class Grid:
             "| Bus  | Bus  |    MW    |   MVar   | Bus  | Bus  |    MW    |   MVar   |"
         )
         for i in range(self.nl):
-            p = self.lines[i].fromNode.index
-            q = self.lines[i].toNode.index
+            p = self.lines[i].from_node.index
+            q = self.lines[i].to_node.index
             print(
                 "| %4g | %4g | %8.2f | %8.2f | %4g | %4g | %8.2f | %8.2f |"
                 % (

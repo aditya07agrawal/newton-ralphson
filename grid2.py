@@ -45,10 +45,9 @@ class Node(CountMixin):
     vLf: float = field(init=False)
     thetaLf: float = field(init=False)
 
-    def __attrs_pre_init__(self):
-        super().__init__()
-
     def __attrs_post_init__(self):
+        self._set_index()
+
         self.vLf = self.voltage
         self.thetaLf = self.theta
 
@@ -78,10 +77,9 @@ class Line(CountMixin):
     y: complex = field(init=False)
     b: complex = field(init=False)
 
-    def __attrs_pre_init__(self):
-        super().__init__()
-
     def __attrs_post_init__(self):
+        self._set_index()
+
         self.z = self.r + self.x * 1j
         self.y = 1 / self.z
         self.b = self.b_half * 1j

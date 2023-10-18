@@ -9,14 +9,12 @@ from attrs import define, field
 
 @define
 class CountMixin:
-    """Mixin to add counting functionatlity"""
+    """Mixin to add counting functionality"""
 
     count: ClassVar[int] = 0
 
     index: int = field(init=False)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.index: int = type(self).count
+    def _set_index(self):
+        self.index = type(self).count
         type(self).count += 1

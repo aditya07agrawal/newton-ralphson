@@ -26,7 +26,7 @@ class Node(CountMixin):
         PLi: float,
         QLi: float,
     ):
-        super().__init__()
+        self._set_index()
 
         self.v = v
         self.kind = kind
@@ -51,7 +51,7 @@ class Node(CountMixin):
 
 class Line(CountMixin):
     def __init__(self, fromNode: Node, toNode: Node, r: float, x: float):
-        super().__init__()
+        self._set_index()
 
         self.fromNode = fromNode
         self.toNode = toNode

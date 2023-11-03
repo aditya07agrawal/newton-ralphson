@@ -73,6 +73,11 @@ class Line(CountMixin):
         self.end_nodes = self.from_node, self.to_node
         self.end_nodes_id = self.from_node.index, self.to_node.index
 
+    @property
+    def current(self) -> complex:
+        """Current through the line"""
+        return (self.from_node.vm - self.to_node.vm) * self.y
+
 
 class Grid:
     """Class to store information on Grid"""

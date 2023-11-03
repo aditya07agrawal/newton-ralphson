@@ -78,6 +78,21 @@ class Line(CountMixin):
         """Current through the line"""
         return (self.from_node.vm - self.to_node.vm) * self.y
 
+    @property
+    def incoming_power(self) -> complex:
+        """Incoming power for this line"""
+        return self.from_node.vmLf * self.current
+
+    @property
+    def outgoing_power(self) -> complex:
+        """Outgoing power for this line"""
+        return self.to_node.vmLf * self.current
+
+    @property
+    def power_loss(self) -> complex:
+        """Power loss in this line"""
+        return self.incoming_power - self.outgoing_power
+
 
 class Grid:
     """Class to store information on Grid"""

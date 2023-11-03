@@ -249,20 +249,6 @@ class Grid:
         while self.iter < maxIter:
             self.iter += 1
 
-            # Maximum reactive power generation during second iteration at bus 3
-            if self.iter == 2 and self.Q_calc[3] > 0.5:
-                jacobian(
-                    self.V,
-                    self.G,
-                    self.B,
-                    self.eff_G,
-                    self.eff_B,
-                    self.pq_node_ids + [3],
-                    self.Q_calc,
-                    self.P_calc,
-                )
-                sys.exit()
-
             # J X = M -> X = J^-1 M
             X = np.linalg.solve(self.J, self.delta)
             dTh = X[0 : self.nb - 1]

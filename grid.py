@@ -7,7 +7,6 @@ Defines classes:
 # pylint: disable=C0103, C0116
 
 from __future__ import annotations
-import sys
 
 from typing import List
 

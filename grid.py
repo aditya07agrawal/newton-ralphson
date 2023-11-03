@@ -472,19 +472,8 @@ class Grid:
         )
         print()
 
-    def print_iteration(self, max_it=2):
-        # if self.iter > max_it:
-        #     return
+    def print_iteration(self):
         print(f"\033[95mCurrent iteration {self.iter}:\033[0m")
-        # print("|   V_0   |   V_1   |   V_2   |   V_3   |   V_4   |   V_5   |")
-        # print("| %7.3f | %7.3f | %7.3f | %7.3f | %7.3f | %7.3f |" % tuple(self.V))
-        # print("|  dV_0   |  dV_1   |  dV_2   |  dV_3   |  dV_4   |  dV_5   |")
-        # print("| %7.3f | %7.3f | %7.3f | %7.3f | %7.3f | %7.3f |" % tuple(self.dV))
-        # print("| theta_0 | theta_1 | theta_2 | theta_3 | theta_4 | theta_5 |")
-        # print("| %7.3f | %7.3f | %7.3f | %7.3f | %7.3f | %7.3f |" % tuple(self.angle))
-        # print("|  dth_0  |  dth_1  |  dth_2  |  dth_3  |  dth_4  |  dth_5  |")
-        # print("| %7.3f | %7.3f | %7.3f | %7.3f | %7.3f | %7.3f |" % tuple(self.dangle))
-        # print()
         with np.printoptions(linewidth=200):
             print("Voltage: ", end="")
             print(self.V)

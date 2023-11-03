@@ -351,10 +351,9 @@ class Grid:
         self.Ia = np.angle(self.I)
 
         for line in self.lines:
-            fromNode, toNode = line.end_nodes
-            i, j = fromNode.index, toNode.index
+            i, j = line.end_nodes_id
 
-            Iij[i, j] = -(fromNode.vm - toNode.vm) * self.Y[i, j]
+            Iij[i, j] = line.current
             Iij[j, i] = -Iij[i, j]
 
         for node in self.nodes:

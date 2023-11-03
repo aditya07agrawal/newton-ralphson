@@ -1,7 +1,14 @@
+"""
+Module to run newton raphson on a grid
+"""
+
+from __future__ import annotations
+
 from grid import Node, Line, Grid
 
 
-def main1():
+def solve_grid_2():
+    """Solves grid 2"""
     n1 = Node(1, 1.05, 0, 0.0, 0, 0, 0)
     n2 = Node(2, 1.05, 0, 0.5, 0, 0, 0)
     n3 = Node(2, 1.07, 0, 0.6, 0, 0, 0)
@@ -29,7 +36,8 @@ def main1():
     grid.print_results()
 
 
-def main():
+def solve_grid_1():
+    """Solves grid 1"""
     n1 = Node(1, 1, 0, 0.0, 0.0, 0.0, 0.0)
     n2 = Node(2, 1, 0, 1.0, 0.0, 0.0, 0.0)
     n3 = Node(3, 1, 0, 0.0, 0.0, 4.0, 2.0)
@@ -50,4 +58,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    solve_grid_1()

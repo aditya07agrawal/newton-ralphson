@@ -242,7 +242,7 @@ class Grid:
             (np.hstack((self.J11, self.J12)), np.hstack((self.J21, self.J22)))
         )
 
-    def nr(self, tol=1, maxIter=2, BMva=1):
+    def nr(self, maxIter=2):
         self.iter = 0
 
         while self.iter < maxIter:

@@ -356,29 +356,6 @@ class Grid:
             Iij[i, j] = line.current
             Iij[j, i] = -Iij[i, j]
 
-        for node in self.nodes:
-            m = node.index  # node index
-            lines = self.get_lines_by_node(node.index)
-            for line in lines:
-                if line.from_node.index == m:
-                    p = line.to_node.index  # index to
-                    if m != p:
-                        Iij[m, p] = (
-                            -(line.from_node.vm - line.to_node.vm) * self.Y[m, p]
-                        )
-                        Iij[p, m] = (
-                            -(line.to_node.vm - line.from_node.vm) * self.Y[p, m]
-                        )
-                else:
-                    p = line.from_node.index  # index from
-                    if m != p:
-                        Iij[m, p] = (
-                            -(line.to_node.vm - line.from_node.vm) * self.Y[p, m]
-                        )
-                        Iij[p, m] = (
-                            -(line.from_node.vm - line.to_node.vm) * self.Y[m, p]
-                        )
-
         self.Iij = Iij
         self.Iijr = np.real(Iij)
         self.Iiji = np.imag(Iij)

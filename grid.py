@@ -4,7 +4,7 @@ Defines classes:
 - Line
 - Grid
 """
-# pylint: disable=invalid-name, missing-function-docstring
+# pylint: disable=invalid-name, missing-function-docstring, consider-using-f-string, attribute-defined-outside-init
 
 from __future__ import annotations
 

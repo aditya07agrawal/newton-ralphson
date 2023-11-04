@@ -358,19 +358,6 @@ class Grid:
 
     def calculateLf(self):
         """Calculate the load flow through the grid"""
-
-        # Line power flow
-        self.Sij = np.zeros((self.nb, self.nb), dtype=complex)
-        for line in self.lines:
-            i, j = line.end_nodes_id
-
-            self.Sij[i, j] = line.incoming_power
-            self.Sij[j, i] = -line.outgoing_power
-
-        self.Pij = np.real(self.Sij)
-        self.Qij = np.imag(self.Sij)
-
-        # Bus power injection
         self.Si = np.array(np.conj(self.Vm) * np.matmul(self.Y, self.Vm))
 
         self.Pi = np.real(self.Si)

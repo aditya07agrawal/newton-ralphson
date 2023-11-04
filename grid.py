@@ -415,20 +415,19 @@ class Grid:
         print(
             "| Bus  | Bus  |    MW    |   MVar   | Bus  | Bus  |    MW    |   MVar   |"
         )
-        for i in range(self.nl):
-            p = self.lines[i].from_node.index
-            q = self.lines[i].to_node.index
+        for line in self.lines:
+            i, j = line.end_nodes_id
             print(
                 "| %4g | %4g | %8.2f | %8.2f | %4g | %4g | %8.2f | %8.2f |"
                 % (
-                    p,
-                    q,
-                    self.Pij[p, q],
-                    self.Qij[p, q],
-                    q,
-                    p,
-                    self.Pij[q, p],
-                    self.Qij[q, p],
+                    i,
+                    j,
+                    np.real(line.outgoing_power),
+                    np.imag(line.outgoing_power),
+                    j,
+                    i,
+                    -np.real(line.incoming_power),
+                    -np.imag(line.incoming_power),
                 )
             )
         print(

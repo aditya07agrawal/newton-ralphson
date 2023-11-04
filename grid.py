@@ -356,56 +356,25 @@ class Grid:
         # the iteration is over; calculate the power flow
         self.calculateLf()
 
-    def calculateLf(self, BMva=1):
-        Vm = np.vstack([node.vm for node in self.nodes]).reshape((self.nb, -1))
-        self.I = np.matmul(self.Y, Vm)
-        Iij = np.zeros((self.nb, self.nb), dtype=complex)
-        Sij = np.zeros((self.nb, self.nb), dtype=complex)
+    def calculateLf(self):
+        """Calculate the load flow through the grid"""
 
-        self.Im = abs(self.I)
-        self.Ia = np.angle(self.I)
-
+        # Line power flow
+        self.Sij = np.zeros((self.nb, self.nb), dtype=complex)
         for line in self.lines:
             i, j = line.end_nodes_id
 
-            Iij[i, j] = line.current
-            Iij[j, i] = -Iij[i, j]
+            self.Sij[i, j] = line.incoming_power
+            self.Sij[j, i] = -line.outgoing_power
 
-        self.Iij = Iij
-        self.Iijr = np.real(Iij)
-        self.Iiji = np.imag(Iij)
-
-        # line power flows
-        for m in range(self.nb):
-            for n in range(self.nb):
-                if n != m:
-                    Sij[m, n] = self.nodes[m].vmLf * np.conj(self.Iij[m, n]) * BMva
-
-        self.Sij = Sij
-        self.Pij = np.real(Sij)
-        self.Qij = np.imag(Sij)
-
-        # line losses
-        Lij = np.zeros(self.nl, dtype=complex)
-        for line in self.lines:
-            m = line.index - 1
-            p = line.from_node.index
-            q = line.to_node.index
-            Lij[m] = Sij[p, q] + Sij[q, p]
-
-        self.Lij = Lij
-        self.Lpij = np.real(Lij)
-        self.Lqij = np.imag(Lij)
+        self.Pij = np.real(self.Sij)
+        self.Qij = np.imag(self.Sij)
 
         # Bus power injection
-        Si = np.zeros(self.nb, dtype=complex)
-        for i in range(self.nb):
-            for k in range(self.nb):
-                Si[i] += np.conj(self.nodes[i].vm) * self.nodes[k].vm * self.Y[i, k]
+        self.Si = np.array(np.conj(self.Vm) * np.matmul(self.Y, self.Vm))
 
-        self.Si = Si
-        self.Pi = np.real(Si)
-        self.Qi = -np.imag(Si)
+        self.Pi = np.real(self.Si)
+        self.Qi = -np.imag(self.Si)
         self.Pg = self.Pi.reshape([-1, 1]) + self.Pl.reshape([-1, 1])
         self.Qg = self.Qi.reshape([-1, 1]) + self.Ql.reshape([-1, 1])
 

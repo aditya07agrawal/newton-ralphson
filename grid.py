@@ -197,39 +197,47 @@ class Grid:
 
     @property
     def d_angle(self):
+        """Antisymmetric matrix representing the phase difference between buses"""
         return np.subtract.outer(self.angle, self.angle)
 
     @property
     def eff_G(self):
+        """Effective conductance between buses"""
         return self.G * np.cos(self.d_angle) + self.B * np.sin(self.d_angle)
 
     @property
     def eff_B(self):
+        """Effective susceptance between buses"""
         return self.G * np.sin(self.d_angle) - self.B * np.cos(self.d_angle)
 
     @property
     def P_calc(self):
+        """Calculated active power"""
         return np.reshape(self.V * np.matmul(self.eff_G, self.V), (-1, 1))
 
     @property
     def Q_calc(self):
+        """Calculated reactive power"""
         return np.reshape(self.V * np.matmul(self.eff_B, self.V), (-1, 1))
 
     @property
-    def f_calc(self):
+    def calculated_power(self):
+        """Calculated power vector"""
         return np.vstack((self.P_calc[1:], self.Q_calc[self.pq_node_ids]))
 
     @property
     def deltaP(self):
+        """Mismatch vector for active power"""
         return (self.Psp - self.P_calc)[1:]
 
     @property
     def deltaQ(self):
+        """Mismatch vector for reactive power"""
         return (self.Qsp - self.Q_calc)[self.pq_node_ids]
 
     @property
     def delta(self):
-        """Delta P and Q"""
+        """Mismatch vector"""
         return np.vstack((self.deltaP, self.deltaQ))
 
     @property
@@ -447,7 +455,7 @@ class Grid:
         with np.printoptions(linewidth=200):
             print("Voltage: ", self.V, "\n")
             print("Angle: ", self.angle, "\n")
-            print("Calculated Power: ", self.f_calc.flatten(), "\n")
+            print("Calculated Power: ", self.calculated_power.flatten(), "\n")
             print("Power error: ", self.delta.flatten(), "\n")
             print("Jacobian: ", "\n", self.J, "\n")
             print("Inverse Jacobian J11: ", "\n", np.linalg.inv(self.J11), "\n")

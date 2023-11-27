@@ -28,6 +28,8 @@ class Node(CountMixin):
     QGi: float
     PLi: float
     QLi: float
+    Qmax: float = 500
+    Qmin: float = -500
 
     vLf: float = field(init=False)
     thetaLf: float = field(init=False)

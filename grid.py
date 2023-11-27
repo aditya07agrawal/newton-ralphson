@@ -211,7 +211,19 @@ class Grid:
     @property
     def Q_calc(self):
         """Calculated reactive power"""
-        return np.reshape(self.V * np.matmul(self.eff_B, self.V), (-1, 1))
+        Q = np.reshape(self.V * np.matmul(self.eff_B, self.V), (-1, 1))
+
+        for ind in range(1, self.nb):
+            node = self.nodes[ind]
+            if node.Qmax != 500:
+                if not node.Qmin <= Q[ind] + self.Ql[ind] <= node.Qmax:
+                    Q[ind] = sorted((Q[ind], node.Qmin, node.Qmax))[1]
+                    node.kind = 3
+                else:
+                    self.V[ind] = node.v = node.v_org
+                    node.kind = 2
+                    Q = self.Q_calc
+        return Q
 
     @property
     def calculated_power(self):

@@ -31,24 +31,13 @@ class Node(CountMixin):
     Qmax: float = 500
     Qmin: float = -500
 
-    vLf: float = field(init=False)
-    thetaLf: float = field(init=False)
-
     def __attrs_post_init__(self):
         self._set_index()
-
-        self.vLf = self.v
-        self.thetaLf = self.theta
 
     @property
     def vm(self) -> complex:
         """Complex power at this node"""
         return self.v * np.exp(self.theta * 1j)
-
-    @property
-    def vmLf(self) -> complex:
-        """Complex power(Lf) at this node"""
-        return self.vLf * np.exp(self.thetaLf * 1j)
 
 
 @define

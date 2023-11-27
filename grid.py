@@ -77,19 +77,29 @@ class Line(CountMixin):
         self.end_nodes_id = self.from_node.index, self.to_node.index
 
     @property
-    def current(self) -> complex:
-        """Current through the line"""
-        return (self.from_node.vm - self.to_node.vm) * self.y
+    def voltage_drop(self) -> complex:
+        """Voltage drop across the line"""
+        return self.from_node.vm - self.to_node.vm
+
+    @property
+    def incoming_current(self) -> complex:
+        """Current pulled by the line"""
+        return self.voltage_drop * self.y + self.b * self.from_node.vm
+
+    @property
+    def outgoing_current(self) -> complex:
+        """Current pushed by the line"""
+        return self.voltage_drop * self.y - self.b * self.to_node.vm
 
     @property
     def incoming_power(self) -> complex:
         """Incoming power for this line"""
-        return self.from_node.vmLf * self.current
+        return self.from_node.vmLf * self.incoming_current
 
     @property
     def outgoing_power(self) -> complex:
         """Outgoing power for this line"""
-        return self.to_node.vmLf * self.current
+        return self.to_node.vmLf * self.outgoing_current
 
     @property
     def power_loss(self) -> complex:

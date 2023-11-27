@@ -96,12 +96,12 @@ class Line(CountMixin):
     @property
     def incoming_power(self) -> complex:
         """Incoming power for this line"""
-        return self.from_node.vmLf * self.incoming_current
+        return self.from_node.vm * self.incoming_current
 
     @property
     def outgoing_power(self) -> complex:
         """Outgoing power for this line"""
-        return self.to_node.vmLf * self.outgoing_current
+        return self.to_node.vm * self.outgoing_current
 
     @property
     def power_loss(self) -> complex:

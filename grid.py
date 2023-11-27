@@ -369,14 +369,14 @@ class Grid:
         print("\033[95mNewton-Raphson Results:\033[0m")
         print()
         print(
-            "| Bus |    V     |  Angle   |      Injection      |     Generation      |       Load         |"
+            "| Bus |   V    |  Angle  |     Injection     |    Generation     |      Load       |"
         )
         print(
-            "| No  |    pu    |  Degree  |    MW    |   MVar   |    MW    |   Mvar   |   MW    |   MVar   |"
+            "| No  |   pu   |  Degree |   MW    |  MVar   |   MW    |  Mvar   |   MW   |  MVar  |"
         )
         for i in range(self.nb):
             print(
-                "| %3g | %8.4f | %8.4f | %8.4f | %8.4f | %8.4f | %8.4f |%8.4f | %8.4f |"
+                "| %3g | %6.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %6.4f | %6.4f |"
                 % (
                     i,
                     self.nodes[i].v,
@@ -391,7 +391,7 @@ class Grid:
             )
 
         print(
-            "----------------------------------------------------------------------------------------------"
+            "------------------------------------------------------------------------------------"
         )
         print()
         print("Line flows and losses:")

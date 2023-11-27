@@ -31,8 +31,12 @@ class Node(CountMixin):
     Qmax: float = 500
     Qmin: float = -500
 
+    v_org: float = field(init=False)
+
     def __attrs_post_init__(self):
         self._set_index()
+
+        self.v_org = self.v
 
     @property
     def vm(self) -> complex:

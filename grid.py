@@ -57,9 +57,11 @@ class Line(CountMixin):
     to_node: Node
     r: float
     x: float
+    b_half: float
 
     z: complex = field(init=False)
     y: complex = field(init=False)
+    b: complex = field(init=False)
 
     end_nodes: tuple[Node, Node] = field(init=False)
     end_nodes_id: tuple[int, int] = field(init=False)
@@ -69,6 +71,7 @@ class Line(CountMixin):
 
         self.z = self.r + self.x * 1j
         self.y = 1 / self.z
+        self.b = self.b_half * 1j
 
         self.end_nodes = self.from_node, self.to_node
         self.end_nodes_id = self.from_node.index, self.to_node.index

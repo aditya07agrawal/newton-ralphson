@@ -162,14 +162,19 @@ class Grid:
         return [node for node in self.nodes if node.kind == 2]
 
     def create_matrix(self):
-        # off diagonal elements
+        """Construct the Y (and hence G and B) matrix for the grid"""
         for line in self.lines:
+            # Off-diagonal admittances
             from_node, to_node = line.end_nodes_id
             self.Y[to_node, from_node] = self.Y[from_node, to_node] = -line.y
 
-        # diagonal elements
+            # Half-line susceptances
+            self.Y[to_node, to_node] += line.b
+            self.Y[from_node, from_node] += line.b
+
+        # Diagonal admittances
         diag = range(self.nb)
-        self.Y[diag, diag] = -self.Y.sum(axis=1)
+        self.Y[diag, diag] -= self.Y.sum(axis=1)
 
         self.G = self.Y.real
         self.B = self.Y.imag

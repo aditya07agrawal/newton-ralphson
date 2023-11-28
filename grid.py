@@ -246,6 +246,11 @@ class Grid:
         return np.vstack((self.deltaP, self.deltaQ))
 
     @property
+    def error(self):
+        """Maximum absolute mismatch in the mismatch vector"""
+        return np.abs(self.delta).max()
+
+    @property
     def J11(self):
         # off diagonal elements
         J11 = np.outer(self.V, self.V) * self.eff_B
@@ -295,10 +300,10 @@ class Grid:
             (np.hstack((self.J11, self.J12)), np.hstack((self.J21, self.J22)))
         )
 
-    def nr(self, max_iter=100):
+    def nr(self, max_iter=100, tolerance=1e-10):
         self.iter = 0
 
-        while self.iter < max_iter:
+        while self.iter < max_iter and self.error > tolerance:
             self.iter += 1
 
             # J X = M -> X = J^-1 M
@@ -311,10 +316,10 @@ class Grid:
         # the iteration is over; calculate the power flow
         self.calculateLf()
 
-    def decoupled(self, max_iter=100):
+    def decoupled(self, max_iter=100, tolerance=1e-10):
         self.iter = 0
 
-        while self.iter < max_iter:
+        while self.iter < max_iter and self.error > tolerance:
             self.iter += 1
 
             dTh = np.linalg.solve(self.J11, self.deltaP)
@@ -325,13 +330,13 @@ class Grid:
         # the iteration is over; calculate the power flow
         self.calculateLf()
 
-    def fast_decoupled(self, max_iter=100):
+    def fast_decoupled(self, max_iter=100, tolerance=1e-10):
         self.iter = 0
 
         invB1 = np.linalg.inv(self.B[1:, 1:])
         invB2 = np.linalg.inv(self.B[np.ix_(self.pq_node_ids, self.pq_node_ids)])
 
-        while self.iter < max_iter:
+        while self.iter < max_iter and self.error > tolerance:
             self.iter += 1
 
             dP_V = self.deltaP / self.V[1:].reshape(-1, 1)

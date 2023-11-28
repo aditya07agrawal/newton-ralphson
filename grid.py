@@ -306,20 +306,7 @@ class Grid:
             dTh = X[0 : self.nb - 1]
             dV = X[self.nb - 1 :]
 
-            # update Angles and Voltages
-            it = iter(dV.flatten())
-            self.dV = np.zeros(self.nb)
-            for i in self.pq_node_ids:
-                self.dV[i] = next(it)
-
-            it = iter(dTh.flatten())
-            self.dangle = np.zeros(self.nb)
-            for i in range(1, self.nb):
-                self.dangle[i] = next(it)
-
-            self.print_iteration()
-            self.update_V()
-            self.update_angle()
+            self.complete_iteration(dV, dTh)
 
         # the iteration is over; calculate the power flow
         self.calculateLf()
@@ -335,20 +322,7 @@ class Grid:
             print("Check....")
             print(dV)
 
-            # update Angles and Voltages
-            it = iter(dV.flatten())
-            self.dV = np.zeros(self.nb)
-            for i in self.pq_node_ids:
-                self.dV[i] = next(it)
-
-            it = iter(dTh.flatten())
-            self.dangle = np.zeros(self.nb)
-            for i in range(1, self.nb):
-                self.dangle[i] = next(it)
-
-            self.print_iteration()
-            self.update_V()
-            self.update_angle()
+            self.complete_iteration(dV, dTh)
 
         # the iteration is over; calculate the power flow
         self.calculateLf()
@@ -371,20 +345,7 @@ class Grid:
             dTh = -np.matmul(invB1, dP_V)
             dV = -np.matmul(invB2, dQ_V)
 
-            # update Angles and Voltages
-            it = iter(dV.flatten())
-            self.dV = np.zeros(self.nb)
-            for i in self.pq_node_ids:
-                self.dV[i] = next(it)
-
-            it = iter(dTh.flatten())
-            self.dangle = np.zeros(self.nb)
-            for i in range(1, self.nb):
-                self.dangle[i] = next(it)
-
-            self.print_iteration()
-            self.update_V()
-            self.update_angle()
+            self.complete_iteration(dV, dTh)
 
         # the iteration is over; calculate the power flow
         self.calculateLf()
@@ -468,3 +429,19 @@ class Grid:
             print("Voltage change: ", self.dV, "\n")
             print("Angle change: ", self.dangle, "\n")
         print()
+
+    def complete_iteration(self, dV: np.ndarray, dTh: np.ndarray):
+        """Update voltages and angles and print the iteration information"""
+        it = iter(dV.flatten())
+        self.dV = np.zeros(self.nb)
+        for i in self.pq_node_ids:
+            self.dV[i] = next(it)
+
+        it = iter(dTh.flatten())
+        self.dangle = np.zeros(self.nb)
+        for i in range(1, self.nb):
+            self.dangle[i] = next(it)
+
+        self.print_iteration()
+        self.update_V()
+        self.update_angle()

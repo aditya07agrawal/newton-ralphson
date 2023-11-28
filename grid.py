@@ -133,21 +133,6 @@ class Grid:
         self.dV = np.zeros(self.nb)
         self.dangle = np.zeros(self.nb)
 
-    def get_node_by_id(self, index: int):
-        for node in self.nodes:
-            if node.index == index:
-                return node
-        raise ValueError(f"No node with number {index}.")
-
-    def get_line_by_id(self, index: int):
-        for line in self.lines:
-            if line.index == index:
-                return line
-        raise ValueError(f"No line with number {index}.")
-
-    def get_lines_by_node(self, node_id: int):
-        return [line for line in self.lines if node_id in line.end_nodes_id]
-
     @property
     def pq_node_ids(self):
         return [node.index for node in self.nodes if node.kind == 3]

@@ -5,125 +5,69 @@ Defines functions for parsing files
 from __future__ import annotations
 
 import csv
-from grid import Node, Line
+
+from grid import Grid, Node, Line
 
 
-def load_buses(file_path_buses):
+def load_buses(buses_file) -> list[Node]:
     """Read data from file to construct buses"""
     nodes = []
     try:
         # Open the CSV file in read mode
-        with open(file_path_buses, "r", encoding="utf-8", newline="") as file:
+        with open(buses_file, "r", encoding="utf-8", newline="") as file:
             # Create a CSV reader object
             csv_reader = csv.DictReader(file)
 
             # Iterate over the rows in the CSV file
-            for row in csv_reader:
-                # Each row is a dictionary where keys are column names
-                node = Node(
-                    # row["Bus No."],
-                    row["Bus type"],
-                    row["Voltage (pu)"],
+            # Each row is a dictionary where keys are column names
+            nodes = [
+                Node(
+                    int(row["Bus type"]),
+                    float(row["Voltage (pu)"]),
                     0,
-                    row["Pg (pu)"],
+                    float(row["Pg (pu)"]),
                     0,
-                    row["Pd (pu)"],
-                    row["Qd (pu)"],
-                    row["Qmax (pu)"],
-                    row["Qmin (pu)"],
+                    float(row["Pd (pu)"]),
+                    float(row["Qd (pu)"]),
+                    float(row["Qmax (pu)"]),
+                    float(row["Qmin (pu)"]),
                 )
-                nodes.append(node)
+                for row in csv_reader
+            ]
+
     except FileNotFoundError:
-        print(
-            f"File not found at '{file_path_buses}'. Please provide a valid file path."
-        )
-    # except Exception as e:
-    #     print(f"An error occurred: {e}")
+        print(f"File not found at '{buses_file}'. Please provide a valid file path.")
     return nodes
 
 
-def load_lines(file_path_lines):
+def load_lines(lines_file, buses) -> list[Line]:
     """Read data from file to construct lines"""
     lines = []
     try:
         # Open the CSV file in read mode
-        with open(file_path_lines, "r", encoding="utf-8", newline="") as file:
+        with open(lines_file, "r", encoding="utf-8", newline="") as file:
             # Create a CSV reader object
             csv_reader = csv.DictReader(file)
 
             # Iterate over the rows in the CSV file
-            for row in csv_reader:
-                # Each row is a dictionary where keys are column names
-                line = Line(
-                    row["From Bus"],
-                    row["To Bus"],
-                    row["R (pu)"],
-                    row["X (pu)"],
-                    row["Half total line charging susceptance (pu)"],
+            # Each row is a dictionary where keys are column names
+            lines = [
+                Line(
+                    buses[int(row["From Bus"]) - 1],
+                    buses[int(row["To Bus"]) - 1],
+                    float(row["R (pu)"]),
+                    float(row["X (pu)"]),
+                    float(row["Half total line charging susceptance (pu)"]),
                 )
-                lines.append(line)
+                for row in csv_reader
+            ]
     except FileNotFoundError:
-        print(
-            f"File not found at '{file_path_lines}'. Please provide a valid file path."
-        )
+        print(f"File not found at '{lines_file}'. Please provide a valid file path.")
     return lines
 
 
-# Get the CSV file location from the user
-# def read_csv(file_path_lines, file_path_buses):
-#     """Read information from file and construct nodes and lines"""
-#     lines = []
-#     nodes = []
-#     try:
-#         # Open the CSV file in read mode
-#         with open(file_path_lines, "r", encoding="utf-8", newline="") as file:
-#             # Create a CSV reader object
-#             csv_reader = csv.DictReader(file)
-
-#             # Iterate over the rows in the CSV file
-#             for row in csv_reader:
-#                 # Each row is a dictionary where keys are column names
-#                 line = Line(
-#                     row["From Bus"],
-#                     row["To Bus"],
-#                     row["R (pu)"],
-#                     row["X (pu)"],
-#                     # row["Half total line charging susceptance (pu)"],
-#                 )
-#                 lines.append(line)
-#     except FileNotFoundError:
-#         print(
-#             f"File not found at '{file_path_lines}'. Please provide a valid file path."
-#         )
-#     except Exception as e:
-#         print(f"An error occurred: {e}")
-
-#     try:
-#         # Open the CSV file in read mode
-#         with open(file_path_buses, "r", encoding="utf-8", newline="") as file:
-#             # Create a CSV reader object
-#             csv_reader = csv.DictReader(file)
-
-#             # Iterate over the rows in the CSV file
-#             for row in csv_reader:
-#                 # Each row is a dictionary where keys are column names
-#                 node = Node(
-#                     # row["Bus No."],
-#                     row["Bus type"],
-#                     row["Voltage (pu)"],
-#                     0,
-#                     row["Pg (pu)"],
-#                     0,
-#                     row["Pd (pu)"],
-#                     row["Qd (pu)"],
-#                     # row["Qmax (pu)"],
-#                     # row["Qmin (pu)"],
-#                 )
-#                 nodes.append(node)
-#     except FileNotFoundError:
-#         print(
-#             f"File not found at '{file_path_buses}'. Please provide a valid file path."
-#         )
-#     # except Exception as e:
-#     #     print(f"An error occurred: {e}")
-#     return (lines, nodes)
+def load_grid(bus_file_path, line_file_path):
+    """Load the grid"""
+    buses = load_buses(bus_file_path)
+    lines = load_lines(line_file_path, buses)
+    return Grid(buses, lines)

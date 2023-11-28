@@ -6,10 +6,10 @@ from __future__ import annotations
 
 import csv
 
-from grid import Grid, Node, Line
+from grid import Grid, Bus, Line
 
 
-def load_buses(buses_file) -> list[Node]:
+def load_buses(buses_file) -> list[Bus]:
     """Read data from file to construct buses"""
     nodes = []
     try:
@@ -21,7 +21,7 @@ def load_buses(buses_file) -> list[Node]:
             # Iterate over the rows in the CSV file
             # Each row is a dictionary where keys are column names
             nodes = [
-                Node(
+                Bus(
                     int(row["Bus type"]),
                     float(row["Voltage (pu)"]),
                     0,

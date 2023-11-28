@@ -18,7 +18,7 @@ from utils import CountMixin
 
 
 @define
-class Node(CountMixin):
+class Bus(CountMixin):
     """Class to store information on a Node"""
 
     kind: int
@@ -40,7 +40,7 @@ class Node(CountMixin):
 
     @property
     def vm(self) -> complex:
-        """Complex power at this node"""
+        """Complex power at this bus"""
         return self.v * np.exp(self.theta * 1j)
 
 
@@ -48,8 +48,8 @@ class Node(CountMixin):
 class Line(CountMixin):
     """Class to store information on Line"""
 
-    from_node: Node
-    to_node: Node
+    from_bus: Bus
+    to_bus: Bus
     r: float
     x: float
     b_half: float
@@ -58,8 +58,8 @@ class Line(CountMixin):
     y: complex = field(init=False)
     b: complex = field(init=False)
 
-    end_nodes: tuple[Node, Node] = field(init=False)
-    end_nodes_id: tuple[int, int] = field(init=False)
+    end_buses: tuple[Bus, Bus] = field(init=False)
+    end_buses_id: tuple[int, int] = field(init=False)
 
     def __attrs_post_init__(self):
         self._set_index()
@@ -68,33 +68,33 @@ class Line(CountMixin):
         self.y = 1 / self.z
         self.b = self.b_half * 1j
 
-        self.end_nodes = self.from_node, self.to_node
-        self.end_nodes_id = self.from_node.index, self.to_node.index
+        self.end_buses = self.from_bus, self.to_bus
+        self.end_buses_id = self.from_bus.index, self.to_bus.index
 
     @property
     def voltage_drop(self) -> complex:
         """Voltage drop across the line"""
-        return self.from_node.vm - self.to_node.vm
+        return self.from_bus.vm - self.to_bus.vm
 
     @property
     def incoming_current(self) -> complex:
         """Current pulled by the line"""
-        return self.voltage_drop * self.y + self.b * self.from_node.vm
+        return self.voltage_drop * self.y + self.b * self.from_bus.vm
 
     @property
     def outgoing_current(self) -> complex:
         """Current pushed by the line"""
-        return self.voltage_drop * self.y - self.b * self.to_node.vm
+        return self.voltage_drop * self.y - self.b * self.to_bus.vm
 
     @property
     def incoming_power(self) -> complex:
         """Incoming power for this line"""
-        return self.from_node.vm * self.incoming_current
+        return self.from_bus.vm * self.incoming_current
 
     @property
     def outgoing_power(self) -> complex:
         """Outgoing power for this line"""
-        return self.to_node.vm * self.outgoing_current
+        return self.to_bus.vm * self.outgoing_current
 
     @property
     def power_loss(self) -> complex:
@@ -105,15 +105,15 @@ class Line(CountMixin):
 class Grid:
     """Class to store information on Grid"""
 
-    def __init__(self, nodes: List[Node], lines: List[Line]):
-        self.nodes = sorted(nodes, key=lambda node: node.index)
+    def __init__(self, buses: List[Bus], lines: List[Line]):
+        self.buses = sorted(buses, key=lambda bus: bus.index)
         self.lines = lines
 
         self.nl = len(self.lines)
-        self.nb = len(self.nodes)
+        self.nb = len(self.buses)
 
-        self.V = np.array([node.v for node in self.nodes])
-        self.angle = np.array([node.theta for node in self.nodes])
+        self.V = np.array([bus.v for bus in self.buses])
+        self.angle = np.array([bus.theta for bus in self.buses])
 
         self.Y = np.zeros((self.nb, self.nb), dtype=complex)
         self.G = np.zeros((self.nb, self.nb))
@@ -125,10 +125,10 @@ class Grid:
         self.Pi = np.zeros((self.nb,))
         self.Qi = np.zeros((self.nb,))
 
-        self.Pl = np.vstack([node.PLi for node in self.nodes])
-        self.Ql = np.vstack([node.QLi for node in self.nodes])
-        self.Pg = np.vstack([node.PGi for node in self.nodes])
-        self.Qg = np.vstack([node.QGi for node in self.nodes])
+        self.Pl = np.vstack([bus.PLi for bus in self.buses])
+        self.Ql = np.vstack([bus.QLi for bus in self.buses])
+        self.Pg = np.vstack([bus.PGi for bus in self.buses])
+        self.Qg = np.vstack([bus.QGi for bus in self.buses])
 
         self.Psp = self.Pg - self.Pl
         self.Qsp = self.Qg - self.Ql
@@ -138,23 +138,23 @@ class Grid:
         self.dangle = np.zeros(self.nb)
 
     @property
-    def pq_node_ids(self):
-        return [node.index for node in self.nodes if node.kind == 3]
+    def pq_bus_ids(self):
+        return [bus.index for bus in self.buses if bus.kind == 3]
 
     @property
-    def pv_nodes(self):
-        return [node for node in self.nodes if node.kind == 2]
+    def pv_buses(self):
+        return [bus for bus in self.buses if bus.kind == 2]
 
     def create_matrix(self):
         """Construct the Y (and hence G and B) matrix for the grid"""
         for line in self.lines:
             # Off-diagonal admittances
-            from_node, to_node = line.end_nodes_id
-            self.Y[to_node, from_node] = self.Y[from_node, to_node] = -line.y
+            from_bus, to_bus = line.end_buses_id
+            self.Y[to_bus, from_bus] = self.Y[from_bus, to_bus] = -line.y
 
             # Half-line susceptances
-            self.Y[to_node, to_node] += line.b
-            self.Y[from_node, from_node] += line.b
+            self.Y[to_bus, to_bus] += line.b
+            self.Y[from_bus, from_bus] += line.b
 
         # Diagonal admittances
         diag = range(self.nb)
@@ -165,17 +165,17 @@ class Grid:
 
     @property
     def Vm(self):
-        return np.array([node.vm for node in self.nodes])
+        return np.array([bus.vm for bus in self.buses])
 
     def update_V(self):
-        for i in self.pq_node_ids:
-            self.nodes[i].v += self.dV[i]
-        self.V = np.array([node.v for node in self.nodes])
+        for i in self.pq_bus_ids:
+            self.buses[i].v += self.dV[i]
+        self.V = np.array([bus.v for bus in self.buses])
 
     def update_angle(self):
         for i in range(1, self.nb):
-            self.nodes[i].theta += self.dangle[i]
-        self.angle = np.array([node.theta for node in self.nodes])
+            self.buses[i].theta += self.dangle[i]
+        self.angle = np.array([bus.theta for bus in self.buses])
 
     @property
     def d_angle(self):
@@ -203,21 +203,21 @@ class Grid:
         Q = np.reshape(self.V * np.matmul(self.eff_B, self.V), (-1, 1))
 
         for ind in range(1, self.nb):
-            node = self.nodes[ind]
-            if node.Qmax != 500:
-                if not node.Qmin <= Q[ind] + self.Ql[ind] <= node.Qmax:
-                    Q[ind] = sorted((Q[ind], node.Qmin, node.Qmax))[1]
-                    node.kind = 3
+            bus = self.buses[ind]
+            if bus.Qmax != 500:
+                if not bus.Qmin <= Q[ind] + self.Ql[ind] <= bus.Qmax:
+                    Q[ind] = sorted((Q[ind], bus.Qmin, bus.Qmax))[1]
+                    bus.kind = 3
                 else:
-                    self.V[ind] = node.v = node.v_org
-                    node.kind = 2
+                    self.V[ind] = bus.v = bus.v_org
+                    bus.kind = 2
                     Q = self.Q_calc
         return Q
 
     @property
     def calculated_power(self):
         """Calculated power vector"""
-        return np.vstack((self.P_calc[1:], self.Q_calc[self.pq_node_ids]))
+        return np.vstack((self.P_calc[1:], self.Q_calc[self.pq_bus_ids]))
 
     @property
     def deltaP(self):
@@ -227,7 +227,7 @@ class Grid:
     @property
     def deltaQ(self):
         """Mismatch vector for reactive power"""
-        return (self.Qsp - self.Q_calc)[self.pq_node_ids]
+        return (self.Qsp - self.Q_calc)[self.pq_bus_ids]
 
     @property
     def delta(self):
@@ -259,7 +259,7 @@ class Grid:
         i, j = np.diag_indices_from(J12)
         J12[i, j] = J12.sum(axis=0) + self.V[i] * self.G[i, i]
 
-        return J12[1:, self.pq_node_ids]
+        return J12[1:, self.pq_bus_ids]
 
     @property
     def J21(self):
@@ -270,7 +270,7 @@ class Grid:
         i, j = np.diag_indices_from(J21)
         J21[i, j] = self.P_calc.flatten() - np.square(self.V) * self.G.diagonal()
 
-        return J21[self.pq_node_ids, 1:]
+        return J21[self.pq_bus_ids, 1:]
 
     @property
     def J22(self):
@@ -281,7 +281,7 @@ class Grid:
         i, j = np.diag_indices_from(J22)
         J22[i, j] = J22.sum(axis=0) - self.V[i] * self.B[i, i]
 
-        return J22[np.ix_(self.pq_node_ids, self.pq_node_ids)]
+        return J22[np.ix_(self.pq_bus_ids, self.pq_bus_ids)]
 
     @property
     def J(self):
@@ -323,13 +323,13 @@ class Grid:
         self.iter = 0
 
         invB1 = np.linalg.inv(self.B[1:, 1:])
-        invB2 = np.linalg.inv(self.B[np.ix_(self.pq_node_ids, self.pq_node_ids)])
+        invB2 = np.linalg.inv(self.B[np.ix_(self.pq_bus_ids, self.pq_bus_ids)])
 
         while self.iter < max_iter and self.error > tolerance:
             self.iter += 1
 
             dP_V = self.deltaP / self.V[1:].reshape(-1, 1)
-            dQ_V = self.deltaQ / self.V[self.pq_node_ids].reshape(-1, 1)
+            dQ_V = self.deltaQ / self.V[self.pq_bus_ids].reshape(-1, 1)
 
             dTh = -np.matmul(invB1, dP_V)
             dV = -np.matmul(invB2, dQ_V)
@@ -362,8 +362,8 @@ class Grid:
                 "| %3g | %6.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %6.4f | %6.4f |"
                 % (
                     i,
-                    self.nodes[i].v,
-                    self.nodes[i].theta,
+                    self.buses[i].v,
+                    self.buses[i].theta,
                     self.Pi[i],
                     self.Qi[i],
                     self.Pg[i],
@@ -386,7 +386,7 @@ class Grid:
             "| Bus  | Bus  |    MW    |   MVar   | Bus  | Bus  |    MW    |   MVar   |"
         )
         for line in self.lines:
-            i, j = line.end_nodes_id
+            i, j = line.end_buses_id
             print(
                 "| %4g | %4g | %8.2f | %8.2f | %4g | %4g | %8.2f | %8.2f |"
                 % (
@@ -423,7 +423,7 @@ class Grid:
         """Update voltages and angles and print the iteration information"""
         it = iter(dV.flatten())
         self.dV = np.zeros(self.nb)
-        for i in self.pq_node_ids:
+        for i in self.pq_bus_ids:
             self.dV[i] = next(it)
 
         it = iter(dTh.flatten())

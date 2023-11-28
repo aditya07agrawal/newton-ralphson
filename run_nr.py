@@ -4,17 +4,17 @@ Module to run newton raphson on a grid
 
 from __future__ import annotations
 
-from grid import Node, Line, Grid
+from grid import Bus, Line, Grid
 
 
 def solve_grid_2():
     """Solves grid 2"""
-    n1 = Node(1, 1.05, 0, 0.0, 0, 0, 0)
-    n2 = Node(2, 1.05, 0, 0.5, 0, 0, 0)
-    n3 = Node(2, 1.07, 0, 0.6, 0, 0, 0)
-    n4 = Node(3, 1.0, 0, 0.0, 0, 0.7, 0.7)
-    n5 = Node(3, 1.0, 0, 0.0, 0, 0.7, 0.7)
-    n6 = Node(3, 1.0, 0, 0.0, 0, 0.7, 0.7)
+    n1 = Bus(1, 1.05, 0, 0.0, 0, 0, 0)
+    n2 = Bus(2, 1.05, 0, 0.5, 0, 0, 0)
+    n3 = Bus(2, 1.07, 0, 0.6, 0, 0, 0)
+    n4 = Bus(3, 1.0, 0, 0.0, 0, 0.7, 0.7)
+    n5 = Bus(3, 1.0, 0, 0.0, 0, 0.7, 0.7)
+    n6 = Bus(3, 1.0, 0, 0.0, 0, 0.7, 0.7)
 
     l1 = Line(n1, n2, 0.1, 0.2, 0)
     l2 = Line(n1, n4, 0.05, 0.2, 0)
@@ -28,20 +28,20 @@ def solve_grid_2():
     l10 = Line(n4, n5, 0.2, 0.4, 0)
     l11 = Line(n5, n6, 0.1, 0.3, 0)
 
-    nodes = [n1, n2, n3, n4, n5, n6]
+    buses = [n1, n2, n3, n4, n5, n6]
     lines = [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11]
 
-    grid = Grid(nodes=nodes, lines=lines)
+    grid = Grid(buses=buses, lines=lines)
     grid.nr()
     grid.print_results()
 
 
 def solve_grid_1():
     """Solves grid 1"""
-    n1 = Node(1, 1, 0, 0.0, 0.0, 0.0, 0.0)
-    n2 = Node(2, 1, 0, 1.0, 0.0, 0.0, 0.0)
-    n3 = Node(3, 1, 0, 0.0, 0.0, 4.0, 2.0)
-    n4 = Node(2, 1, 0, 2.0, 0.0, 1.0, 0.5)
+    n1 = Bus(1, 1, 0, 0.0, 0.0, 0.0, 0.0)
+    n2 = Bus(2, 1, 0, 1.0, 0.0, 0.0, 0.0)
+    n3 = Bus(3, 1, 0, 0.0, 0.0, 4.0, 2.0)
+    n4 = Bus(2, 1, 0, 2.0, 0.0, 1.0, 0.5)
 
     l1 = Line(n1, n2, 0, 0.1, 0)
     l2 = Line(n1, n3, 0, 0.1, 0)
@@ -49,10 +49,10 @@ def solve_grid_1():
     l4 = Line(n2, n3, 0, 0.1, 0)
     l5 = Line(n3, n4, 0, 0.1, 0)
 
-    nodes = [n1, n2, n3, n4]
+    buses = [n1, n2, n3, n4]
     lines = [l1, l2, l3, l4, l5]
 
-    grid = Grid(nodes, lines)
+    grid = Grid(buses, lines)
     grid.nr()
     grid.print_results()
 

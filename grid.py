@@ -4,7 +4,7 @@ Defines classes:
 - Line
 - Grid
 """
-# pylint: disable=invalid-name, missing-function-docstring, consider-using-f-string, attribute-defined-outside-init
+# pylint: disable=invalid-name, missing-function-docstring, consider-using-f-string
 
 from __future__ import annotations
 
@@ -120,6 +120,10 @@ class Grid:
         self.B = np.zeros((self.nb, self.nb))
 
         self.create_matrix()
+
+        self.Si = np.zeros((self.nb,), dtype=complex)
+        self.Pi = np.zeros((self.nb,))
+        self.Qi = np.zeros((self.nb,))
 
         self.Pl = np.vstack([node.PLi for node in self.nodes])
         self.Ql = np.vstack([node.QLi for node in self.nodes])

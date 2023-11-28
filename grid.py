@@ -319,8 +319,6 @@ class Grid:
 
             dTh = np.linalg.solve(self.J11, self.deltaP)
             dV = np.linalg.solve(self.J22, self.deltaQ)
-            print("Check....")
-            print(dV)
 
             self.complete_iteration(dV, dTh)
 
@@ -338,9 +336,6 @@ class Grid:
 
             dP_V = self.deltaP / self.V[1:].reshape(-1, 1)
             dQ_V = self.deltaQ / self.V[self.pq_node_ids].reshape(-1, 1)
-
-            print(dP_V)
-            print(dQ_V)
 
             dTh = -np.matmul(invB1, dP_V)
             dV = -np.matmul(invB2, dQ_V)
